@@ -162,7 +162,7 @@ class RCView(context: Context, attrs: AttributeSet) : View(context, attrs) {
         val sRise = rise * scale
 
         val x0 = pad + 40f
-        val y0 = totalH - pad - 30f
+        val y0 = totalH - pad - 100f
         val x1 = x0 + sRun
         val y1 = y0 - sRise
 
@@ -211,6 +211,13 @@ class RCView(context: Context, attrs: AttributeSet) : View(context, attrs) {
             isAntiAlias = true
         }
 
+        val stepNumPaint = Paint().apply {
+            color = Color.parseColor("#78909C")
+            textSize = 14f
+            textAlign = Paint.Align.CENTER
+            isAntiAlias = true
+        }
+
         for (i in 0 until numSteps) {
             val t1 = i.toFloat() / numSteps
             val t2 = (i + 1).toFloat() / numSteps
@@ -232,6 +239,10 @@ class RCView(context: Context, attrs: AttributeSet) : View(context, attrs) {
             canvas.drawLine(lx, ly, rx, ly, thinLinePaint)
             canvas.drawLine(rx, ly, rx, nly, thinLinePaint)
             canvas.drawLine(rx, nly, nlx, nly, thinLinePaint)
+
+            val numX = (lx + rx) / 2
+            val numY = (ly + nly) / 2 + 5f
+            canvas.drawText("${i + 1}", numX, numY, stepNumPaint)
         }
 
         val riseMm = heightMm / numSteps
@@ -285,6 +296,57 @@ class RCView(context: Context, attrs: AttributeSet) : View(context, attrs) {
         canvas.rotate(-angle, strMidX, strMidY)
         canvas.drawText("${stringerLen.toInt()}", strMidX, strMidY - 10f, engDimTextPaint)
         canvas.restore()
+
+        drawTitleBlock(canvas, totalW, totalH)
+    }
+
+    private fun drawTitleBlock(canvas: Canvas, totalW: Float, totalH: Float) {
+        val blockH = 55f
+        val blockY = totalH - blockH - 5f
+        val blockW = totalW - 20f
+        val blockX = 10f
+
+        val blockPaint = Paint().apply {
+            color = Color.parseColor("#90CAF9")
+            strokeWidth = 1.5f
+            style = Paint.Style.STROKE
+            isAntiAlias = true
+        }
+
+        val blockFillPaint = Paint().apply {
+            color = Color.parseColor("#1A90CAF9")
+            style = Paint.Style.FILL
+            isAntiAlias = true
+        }
+
+        val blockTextPaint = Paint().apply {
+            color = Color.parseColor("#B0BEC5")
+            textSize = 12f
+            textAlign = Paint.Align.LEFT
+            isAntiAlias = true
+        }
+
+        val blockTitlePaint = Paint().apply {
+            color = Color.parseColor("#90CAF9")
+            textSize = 14f
+            textAlign = Paint.Align.LEFT
+            typeface = Typeface.DEFAULT_BOLD
+            isAntiAlias = true
+        }
+
+        canvas.drawRect(blockX, blockY, blockX + blockW, totalH, blockFillPaint)
+        canvas.drawRect(blockX, blockY, blockX + blockW, totalH, blockPaint)
+
+        val midX = blockX + blockW / 2
+        canvas.drawLine(midX, blockY, midX, totalH, blockPaint)
+
+        canvas.drawText("ЛЕСТНИЦА МЕТАЛЛИЧЕСКАЯ", blockX + 10f, blockY + 18f, blockTitlePaint)
+        canvas.drawText("Высота: ${heightMm.toInt()} мм", blockX + 10f, blockY + 34f, blockTextPaint)
+        canvas.drawText("Угол: ${angle.toInt()}°", blockX + 10f, blockY + 46f, blockTextPaint)
+
+        canvas.drawText("Ступеней: ${stepCount}", midX + 10f, blockY + 18f, blockTextPaint)
+        canvas.drawText("Масштаб: 1:${(1000 / (widthMm / width * 100)).toInt()}", midX + 10f, blockY + 34f, blockTextPaint)
+        canvas.drawText("Лист 1 из 1", midX + 10f, blockY + 46f, blockTextPaint)
     }
 
     private fun drawEngDimH(canvas: Canvas, left: Float, y: Float, right: Float, text: String, arrow: Float) {

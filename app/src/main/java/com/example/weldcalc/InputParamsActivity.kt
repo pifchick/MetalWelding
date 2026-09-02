@@ -63,6 +63,11 @@ class InputParamsActivity : AppCompatActivity() {
         val etStepWidth = findViewById<TextInputEditText>(R.id.etStepWidth)
         val etStepCount = findViewById<TextInputEditText>(R.id.etStepCount)
 
+        // Автоматический разбег
+        val layoutLength = findViewById<View>(R.id.layoutLength)
+        val layoutRun = findViewById<View>(R.id.layoutRun)
+        val etRun = findViewById<TextInputEditText>(R.id.etRun)
+
         // Доп.поля для произвольной формы
         val extraCustomGroup = findViewById<View>(R.id.extraCustomGroup)
         val etSideCount = findViewById<TextInputEditText>(R.id.etSideCount)
@@ -107,19 +112,116 @@ class InputParamsActivity : AppCompatActivity() {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
+        // Флаг для предотвращения рекурсии
+        var isAutoUpdating = false
+        val handler = android.os.Handler(android.os.Looper.getMainLooper())
+        var pendingRunCalc: Runnable? = null
+        var pendingAngleCalc: Runnable? = null
+        var pendingCanvasUpdate: Runnable? = null
+
+        // Live-обновление чертежа при изменении параметров
+        fun liveUpdateCanvas() {
+            if (structureType != StructureType.LADDER) return
+            if (canvasView.visibility != View.VISIBLE) return
+            val h = etHeight.text.toString().toFloatOrNull() ?: return
+            val w = etWidth.text.toString().toFloatOrNull() ?: 0f
+            val run = etRun.text.toString().replace(",", ".").toFloatOrNull() ?: 0f
+            val a = etStepWidth.text.toString().replace(",", ".").toFloatOrNull() ?: 42f
+            val steps = etStepCount.text.toString().toIntOrNull() ?: 10
+            val drawWidth = if (run > 0f) run else w
+            canvasView.setDimensions(drawWidth, h.coerceAtLeast(w), structureType, a, steps)
+        }
+
+        fun scheduleCanvasUpdate() {
+            pendingCanvasUpdate?.let { handler.removeCallbacks(it) }
+            pendingCanvasUpdate = Runnable { liveUpdateCanvas() }
+            handler.postDelayed(pendingCanvasUpdate!!, 100)
+        }
+
         // Автоподсчёт ступеней при изменении высоты
         fun autoCalcSteps() {
             val h = etHeight.text.toString().toFloatOrNull() ?: return
             if (h <= 0f) return
             val idealRise = 180f
             val steps = (h / idealRise).toInt().coerceIn(3, 30)
-            etStepCount.setText(steps.toString())
+            val cur = etStepCount.text.toString().toIntOrNull()
+            if (cur != steps) etStepCount.setText(steps.toString())
         }
+
+        // Автоподсчёт горизонтального разбега из высоты и угла
+        fun doCalcRun() {
+            if (isAutoUpdating) return
+            val h = etHeight.text.toString().toFloatOrNull() ?: return
+            val angle = etStepWidth.text.toString().replace(",", ".").toFloatOrNull() ?: return
+            if (h <= 0f || angle <= 0f) return
+            val tanA = kotlin.math.tan(Math.toRadians(angle.toDouble())).toFloat()
+            val newRun = (h / tanA).toInt()
+            val curRun = etRun.text.toString().toIntOrNull()
+            if (newRun == curRun) return
+            isAutoUpdating = true
+            etRun.setText("$newRun")
+            isAutoUpdating = false
+            scheduleCanvasUpdate()
+        }
+
+        fun autoCalcRun() {
+            pendingRunCalc?.let { handler.removeCallbacks(it) }
+            pendingRunCalc = Runnable { doCalcRun() }
+            handler.postDelayed(pendingRunCalc!!, 300)
+        }
+
+        // Автоподсчёт угла из разбега и высоты
+        fun doCalcAngle() {
+            if (isAutoUpdating) return
+            val h = etHeight.text.toString().toFloatOrNull() ?: return
+            val run = etRun.text.toString().replace(",", ".").toFloatOrNull() ?: return
+            if (h <= 0f || run <= 0f) return
+            val angle = Math.toDegrees(Math.atan2(h.toDouble(), run.toDouble())).toFloat()
+            val newAngleStr = String.format(java.util.Locale.US, "%.1f", angle)
+            val curAngleStr = etStepWidth.text.toString().replace(",", ".")
+            if (newAngleStr == curAngleStr) return
+            isAutoUpdating = true
+            etStepWidth.setText(newAngleStr)
+            isAutoUpdating = false
+            scheduleCanvasUpdate()
+        }
+
+        fun autoCalcAngle() {
+            pendingAngleCalc?.let { handler.removeCallbacks(it) }
+            pendingAngleCalc = Runnable { doCalcAngle() }
+            handler.postDelayed(pendingAngleCalc!!, 300)
+        }
+
         etHeight.addTextChangedListener(object : android.text.TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: android.text.Editable?) {
-                if (structureType == StructureType.LADDER) autoCalcSteps()
+                if (structureType == StructureType.LADDER && !isAutoUpdating) {
+                    autoCalcSteps()
+                    autoCalcRun()
+                }
+            }
+        })
+
+        etStepWidth.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: android.text.Editable?) {
+                if (structureType == StructureType.LADDER && !isAutoUpdating) {
+                    autoCalcRun()
+                    scheduleCanvasUpdate()
+                }
+            }
+        })
+
+        etRun.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: android.text.Editable?) {
+                if (structureType == StructureType.LADDER && !isAutoUpdating) {
+                    autoCalcAngle()
+                    scheduleCanvasUpdate()
+                }
             }
         })
 
@@ -129,15 +231,22 @@ class InputParamsActivity : AppCompatActivity() {
                 StructureType.LADDER -> {
                     extraLadderGroup.visibility = View.VISIBLE
                     extraCustomGroup.visibility = View.GONE
+                    layoutLength.visibility = View.GONE
+                    layoutRun.visibility = View.VISIBLE
                     autoCalcSteps()
+                    autoCalcRun()
                 }
                 StructureType.CUSTOM -> {
                     extraLadderGroup.visibility = View.GONE
                     extraCustomGroup.visibility = View.VISIBLE
+                    layoutLength.visibility = View.VISIBLE
+                    layoutRun.visibility = View.GONE
                 }
                 else -> {
                     extraLadderGroup.visibility = View.GONE
                     extraCustomGroup.visibility = View.GONE
+                    layoutLength.visibility = View.VISIBLE
+                    layoutRun.visibility = View.GONE
                 }
             }
         }
@@ -147,7 +256,6 @@ class InputParamsActivity : AppCompatActivity() {
 
         val btnCalculate = findViewById<MaterialButton>(R.id.btnCalculate)
         btnCalculate.setOnClickListener {
-            val length = etLength.text.toString().toFloatOrNull() ?: 0f
             val width = etWidth.text.toString().toFloatOrNull() ?: 0f
             val height = etHeight.text.toString().toFloatOrNull() ?: 0f
             val quantity = etQuantity.text.toString().toIntOrNull() ?: 1
@@ -156,19 +264,33 @@ class InputParamsActivity : AppCompatActivity() {
             val selectedProfile = profiles[spinnerProfile.selectedItemPosition]
             val priceIsPerKg = radioPriceUnit.checkedRadioButtonId == R.id.rbPerKg
 
+            val ladderAngle = etStepWidth.text.toString().replace(",", ".").toFloatOrNull() ?: 42f
+            val ladderStepCount = etStepCount.text.toString().toIntOrNull() ?: 10
+
+            val length = if (structureType == StructureType.LADDER) {
+                val runVal = etRun.text.toString().replace(",", ".").toFloatOrNull()
+                if (runVal != null && runVal > 0f) {
+                    runVal
+                } else {
+                    val tanA = kotlin.math.tan(Math.toRadians(ladderAngle.toDouble())).toFloat()
+                    height / tanA
+                }
+            } else {
+                etLength.text.toString().toFloatOrNull() ?: 0f
+            }
+
             val weightPerUnit = if (selectedProfile == ProfileType.CUSTOM) {
                 etThickness.text.toString().toFloatOrNull() ?: 0f
             } else {
                 selectedProfile.weightPerMeter
             }
 
-            val ladderStepCount = etStepCount.text.toString().toIntOrNull() ?: 10
             val (totalLength, unit) = calculateTotal(
                 structureType, length, width, height, quantity, selectedProfile,
                 stepWidth = 300f,
                 stepCount = ladderStepCount,
                 sideCount = etSideCount.text.toString().toIntOrNull() ?: 4,
-                angle = etStepWidth.text.toString().toFloatOrNull() ?: 42f
+                angle = etStepWidth.text.toString().replace(",", ".").toFloatOrNull() ?: 42f
             )
 
             val weight = totalLength * weightPerUnit
@@ -184,7 +306,6 @@ class InputParamsActivity : AppCompatActivity() {
 
             // Схема
             canvasView.visibility = View.VISIBLE
-            val ladderAngle = etStepWidth.text.toString().toFloatOrNull() ?: 42f
             canvasView.setDimensions(length, height.coerceAtLeast(width), structureType, ladderAngle, ladderStepCount)
 
             // Разблокируем PDF

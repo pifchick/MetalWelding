@@ -26,47 +26,22 @@
             android:layout_height="wrap_content"
             android:text="Тип профиля"
             android:textStyle="bold"
-            android:layout_marginBottom="8dp"/>
+            android:layout_marginBottom="4dp"/>
 
         <Spinner
             android:id="@+id/spinnerProfile"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:layout_marginBottom="16dp"
-            android:background="@android:drawable/btn_dropdown"
-            android:padding="12dp"
+            android:background="@drawable/spinner_bg"
+            android:paddingStart="12dp"
+            android:paddingEnd="40dp"
             android:dropDownWidth="match_parent"
-            android:dropDownSelector="@android:drawable/btn_dropdown"
             android:popupBackground="?attr/colorSurface"
-            android:dropDownVerticalOffset="4dp"/>
+            android:dropDownVerticalOffset="56dp"
+            android:elevation="2dp"/>
 
-        <!-- Поля ввода размеров -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Длина (мм)"
-            android:layout_marginBottom="12dp">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etLength"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="numberDecimal"/>
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Ширина (мм)"
-            android:layout_marginBottom="12dp">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etWidth"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="numberDecimal"/>
-        </com.google.android.material.textfield.TextInputLayout>
-
+        <!-- Высота -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -80,6 +55,52 @@
                 android:inputType="numberDecimal"/>
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Ширина -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Ширина (мм)"
+            android:layout_marginBottom="12dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etWidth"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Длина (для не-лестниц) -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutLength"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Длина (мм)"
+            android:layout_marginBottom="12dp">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etLength"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Горизонтальный разбег (для лестниц) -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/layoutRun"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Горизонтальный разбег (мм)"
+            android:layout_marginBottom="12dp"
+            android:visibility="gone">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etRun"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Толщина (для custom) -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/layoutThickness"
             android:layout_width="match_parent"
@@ -95,6 +116,7 @@
                 android:inputType="numberDecimal"/>
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Количество -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -204,19 +226,20 @@
             android:text="Материал"
             android:textStyle="bold"
             android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"/>
+            android:layout_marginBottom="4dp"/>
 
         <Spinner
             android:id="@+id/spinnerMaterial"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:layout_marginBottom="12dp"
-            android:background="@android:drawable/btn_dropdown"
-            android:padding="12dp"
+            android:background="@drawable/spinner_bg"
+            android:paddingStart="12dp"
+            android:paddingEnd="40dp"
             android:dropDownWidth="match_parent"
-            android:dropDownSelector="@android:drawable/btn_dropdown"
             android:popupBackground="?attr/colorSurface"
-            android:dropDownVerticalOffset="4dp"/>
+            android:dropDownVerticalOffset="56dp"
+            android:elevation="2dp"/>
 
         <!-- Цена -->
         <TextView
