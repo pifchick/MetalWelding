@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- MD3 Dark Scheme -->
+    <color name="md_primary">#FF90CAF9</color>
+    <color name="md_onPrimary">#FF003366</color>
+    <color name="md_primaryContainer">#FF0D47A1</color>
+    <color name="md_onPrimaryContainer">#FFD1E4FF</color>
+    <color name="md_secondary">#FFBBC7DB</color>
+    <color name="md_surface">#FF111318</color>
+    <color name="md_surfaceVariant">#FF43474E</color>
+    <color name="md_background">#FF111318</color>
+    <color name="md_onSurface">#FFE1E3E8</color>
+    <color name="md_onSurfaceVariant">#FFC3C6CF</color>
+</resources>
