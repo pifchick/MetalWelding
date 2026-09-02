@@ -8,12 +8,14 @@ import android.os.Bundle
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.google.android.material.button.MaterialButton
 import android.widget.TextView
 import java.io.File
 import java.io.FileOutputStream
+import kotlinx.coroutines.launch
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.tan
@@ -326,6 +328,42 @@ class InputParamsActivity : AppCompatActivity() {
                 schemaView = canvasView
             )
             lastPdfFile = pdfFile
+
+            // Сохраняем миниатюру чертежа
+            val thumbnailFile = File(filesDir, "thumb_${System.currentTimeMillis()}.png")
+            try {
+                val bitmap = Bitmap.createBitmap(canvasView.width, canvasView.height, Bitmap.Config.ARGB_8888)
+                val canvas = Canvas(bitmap)
+                canvasView.draw(canvas)
+                FileOutputStream(thumbnailFile).use { out ->
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 80, out)
+                }
+                bitmap.recycle()
+            } catch (_: Exception) {}
+
+            // Сохраняем проект в историю
+            val project = Project(
+                name = structureDisplayName,
+                structureType = structureType.name,
+                profile = selectedProfile.displayName,
+                material = material,
+                height = height,
+                width = width,
+                length = length,
+                angle = ladderAngle,
+                stepCount = ladderStepCount,
+                totalLength = totalLength,
+                unit = unit,
+                weight = weight,
+                cost = cost,
+                thumbnailPath = thumbnailFile.absolutePath,
+                pdfPath = pdfFile.absolutePath
+            )
+            val db = AppDatabase.getDatabase(this)
+            lifecycleScope.launch {
+                ProjectRepository(db.projectDao()).insert(project)
+            }
+
             Toast.makeText(this, "PDF сохранён", Toast.LENGTH_SHORT).show()
         }
 

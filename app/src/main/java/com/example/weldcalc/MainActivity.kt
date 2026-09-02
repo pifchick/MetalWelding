@@ -29,7 +29,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         history.setOnClickListener {
-            Toast.makeText(this, "История проектов — скоро", Toast.LENGTH_SHORT).show()
+            val intent = Intent(this, HistoryActivity::class.java)
+            startActivity(intent)
         }
 
         settings.setOnClickListener {
